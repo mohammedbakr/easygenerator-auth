@@ -7,11 +7,13 @@ import {
   ApiNoContentResponse,
   ApiOkResponse,
   ApiTags,
+  ApiTooManyRequestsResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
 import { Public } from '../../common/decorators/public.decorator.js';
+import { StrictThrottle } from '../../common/decorators/strict-throttle.decorator.js';
 import type { AuthUser } from '../../common/types/auth-user.js';
 import { AppConfigService } from '../../config/app-config.service.js';
 import { UserResponseDto } from '../users/dto/user-response.dto.js';
@@ -43,11 +45,13 @@ export class AuthController {
   }
 
   @Public()
+  @StrictThrottle()
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatedResponse({ type: UserResponseDto, description: 'Account created, cookies set' })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   @ApiConflictResponse({ description: 'Email is already registered' })
+  @ApiTooManyRequestsResponse({ description: 'Too many attempts' })
   async signUp(
     @Body() dto: SignUpDto,
     @Res({ passthrough: true }) res: Response,
@@ -58,11 +62,13 @@ export class AuthController {
   }
 
   @Public()
+  @StrictThrottle()
   @Post('signin')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: UserResponseDto, description: 'Signed in, cookies set' })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   @ApiUnauthorizedResponse({ description: 'Invalid email or password' })
+  @ApiTooManyRequestsResponse({ description: 'Too many attempts' })
   async signIn(
     @Body() dto: SignInDto,
     @Res({ passthrough: true }) res: Response,
