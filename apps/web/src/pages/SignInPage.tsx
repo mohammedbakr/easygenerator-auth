@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { AuthLayout } from './AuthLayout';
+import { AuthLayout } from '@/features/auth/components/AuthLayout';
 
 export function SignInPage() {
   return (
