@@ -10,6 +10,8 @@ export const envSchema = z
     JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
     JWT_REFRESH_TTL_SECONDS: z.coerce.number().int().positive().default(604800),
     CORS_ORIGIN: z.url(),
+    RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(100),
+    AUTH_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(5),
   })
   .refine((env) => env.JWT_ACCESS_SECRET !== env.JWT_REFRESH_SECRET, {
     message: 'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must differ',
