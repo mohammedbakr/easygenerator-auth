@@ -1,0 +1,20 @@
+# deps / build
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# env
+.env
+.env.*
+!.env.example
+
+# local notes
+notes-ai.md
+CLAUDE.local.md
+
+# misc
+.DS_Store
+*.log
+.vscode/
+.idea/
