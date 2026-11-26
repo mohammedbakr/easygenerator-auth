@@ -17,6 +17,8 @@
   },
   "devDependencies": {
     "concurrently": "^10.0.7",
+    "oxlint": "^1.95.0",
+    "oxlint-tsgolint": "^7.0.2009",
     "prettier": "^3.10.1"
   }
 }
