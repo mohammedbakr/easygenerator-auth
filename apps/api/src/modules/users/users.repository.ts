@@ -20,9 +20,7 @@ export class UsersRepository {
       return this.toEntity(created.toObject());
     } catch (error) {
       // Relying on the unique index (not find-then-insert) avoids a race between two signups.
-      if (error instanceof mongo.MongoServerError && error.code === DUPLICATE_KEY_ERROR_CODE) {
-        throw new EmailAlreadyExistsError();
-      }
+      if (this.isDuplicateEmailError(error)) throw new EmailAlreadyExistsError();
       throw error;
     }
   }
@@ -64,6 +62,15 @@ export class UsersRepository {
       { $set: { refreshTokenHash: newHash } },
     );
     return result.modifiedCount === 1;
+  }
+
+  /** Only a clash on the email index counts; any other 11000 is a real error and is rethrown. */
+  private isDuplicateEmailError(error: unknown): boolean {
+    if (!(error instanceof mongo.MongoServerError) || error.code !== DUPLICATE_KEY_ERROR_CODE) {
+      return false;
+    }
+    const { keyPattern } = error as { keyPattern?: Record<string, unknown> };
+    return Boolean(keyPattern?.email);
   }
 
   private toEntity(record: UserRecord): UserEntity {

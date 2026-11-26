@@ -28,7 +28,7 @@ async function bootstrap(): Promise<void> {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Easygenerator Auth API')
     .setVersion('1.0')
-    .addCookieAuth('access_token')
+    .addCookieAuth('access_token', undefined, 'access_token')
     .build();
   SwaggerModule.setup('api/docs', app, () => SwaggerModule.createDocument(app, swaggerConfig));
 
