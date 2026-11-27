@@ -27,7 +27,12 @@ describe('validateEnv', () => {
 
   it('lets COOKIE_SECURE and TRUST_PROXY be set explicitly', () => {
     expect(
-      validateEnv({ ...valid, NODE_ENV: 'production', COOKIE_SECURE: 'false', TRUST_PROXY: 'true' }),
+      validateEnv({
+        ...valid,
+        NODE_ENV: 'production',
+        COOKIE_SECURE: 'false',
+        TRUST_PROXY: 'true',
+      }),
     ).toMatchObject({ COOKIE_SECURE: false, TRUST_PROXY: true });
   });
 

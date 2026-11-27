@@ -25,7 +25,10 @@ export const envSchema = z
     message: 'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must differ',
     path: ['JWT_REFRESH_SECRET'],
   })
-  .transform((env) => ({ ...env, COOKIE_SECURE: env.COOKIE_SECURE ?? env.NODE_ENV === 'production' }));
+  .transform((env) => ({
+    ...env,
+    COOKIE_SECURE: env.COOKIE_SECURE ?? env.NODE_ENV === 'production',
+  }));
 
 export type Env = z.infer<typeof envSchema>;
 
