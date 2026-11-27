@@ -11,7 +11,6 @@ import type { FieldError } from '../errors/validation-exception.factory.js';
 
 export interface ErrorResponseBody {
   statusCode: number;
-  /** Always one human-readable string. */
   message: string;
   /** Per-field details (validation, duplicate email). Absent for 401/429 and 5xx. */
   errors?: FieldError[];

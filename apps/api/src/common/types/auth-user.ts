@@ -1,4 +1,3 @@
-/** The authenticated caller, attached to the request by `JwtAuthGuard`. */
 export interface AuthUser {
   id: string;
 }

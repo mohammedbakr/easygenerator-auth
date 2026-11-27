@@ -9,7 +9,6 @@ interface AuthLayoutProps {
   children: ReactNode;
 }
 
-/** Centred card shell shared by the auth pages. */
 export function AuthLayout({ title, description, children }: AuthLayoutProps) {
   return (
     <main className="flex min-h-svh items-center justify-center bg-background p-4">

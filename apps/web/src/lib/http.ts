@@ -12,7 +12,6 @@ export interface FieldError {
   message: string;
 }
 
-/** Error shape returned by the API's global exception filter. */
 interface ApiErrorBody {
   statusCode: number;
   message?: string;
@@ -22,7 +21,6 @@ interface ApiErrorBody {
 /** The only error type the rest of the app sees. */
 export class ApiError extends Error {
   readonly status: number;
-  /** Per-field problems from the API (empty when there are none). */
   readonly fieldErrors: FieldError[];
 
   constructor(status: number, message: string, fieldErrors: FieldError[] = []) {
