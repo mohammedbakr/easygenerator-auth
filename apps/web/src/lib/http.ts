@@ -1,4 +1,11 @@
-import axios, { isAxiosError } from 'axios';
+import axios, { isAxiosError, type InternalAxiosRequestConfig } from 'axios';
+
+declare module 'axios' {
+  interface InternalAxiosRequestConfig {
+    /** Set once a request has been replayed after a token refresh, so it can't loop. */
+    _retried?: boolean;
+  }
+}
 
 /** Error shape returned by the API's global exception filter. */
 interface ApiErrorBody {
@@ -31,4 +38,47 @@ function toApiError(error: unknown): ApiError {
 /** Same-origin `/api` (Vite proxy in dev, nginx in Docker); cookies carry the session. */
 export const http = axios.create({ baseURL: '/api', withCredentials: true });
 
-http.interceptors.response.use(undefined, (error: unknown) => Promise.reject(toApiError(error)));
+let onSessionExpired: (() => void) | undefined;
+
+/** Lets the app react to a dead session (e.g. mark the user logged out) without this file knowing about React. */
+export function setOnSessionExpired(callback: () => void): void {
+  onSessionExpired = callback;
+}
+
+// One shared in-flight refresh. Refresh tokens rotate, so parallel refreshes would invalidate each
+// other and the server would treat the loser as token reuse and end the session.
+let refreshing: Promise<void> | null = null;
+
+function refreshSession(): Promise<void> {
+  refreshing ??= http
+    .post('/auth/refresh')
+    .then(() => undefined)
+    .finally(() => {
+      refreshing = null;
+    });
+  return refreshing;
+}
+
+function canRefresh(error: unknown): error is { config: InternalAxiosRequestConfig } {
+  return (
+    isAxiosError(error) &&
+    error.response?.status === 401 &&
+    error.config !== undefined &&
+    !error.config._retried &&
+    // /auth/* failures (wrong password, dead refresh token) are final answers, not expired sessions.
+    !error.config.url?.startsWith('/auth/')
+  );
+}
+
+http.interceptors.response.use(undefined, async (error: unknown) => {
+  if (!canRefresh(error)) throw toApiError(error);
+
+  try {
+    await refreshSession();
+  } catch {
+    onSessionExpired?.();
+    throw toApiError(error);
+  }
+  error.config._retried = true;
+  return http(error.config);
+});

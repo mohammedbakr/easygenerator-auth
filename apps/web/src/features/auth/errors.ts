@@ -15,7 +15,7 @@ export function applyApiError(error: unknown, { setEmailError, setFormError }: E
       case 409:
         return setEmailError(error.message);
       case 401:
-        return setFormError('Invalid email or password');
+        return setFormError(error.messages[0] ?? 'Invalid email or password');
       case 429:
         return setFormError(error.message);
       case 400:
