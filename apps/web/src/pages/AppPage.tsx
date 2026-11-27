@@ -39,12 +39,18 @@ export function AppPage() {
             <div className="flex flex-col gap-2">
               <h1 className="text-2xl font-semibold">Welcome to the application.</h1>
               {user && (
-                <p className="text-muted-foreground">
+                <p className="wrap-anywhere text-muted-foreground">
                   Signed in as {user.name} ({user.email})
                 </p>
               )}
             </div>
-            <Button type="button" variant="outline" disabled={logout.isPending} onClick={signOut}>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 md:h-9"
+              disabled={logout.isPending}
+              onClick={signOut}
+            >
               {logout.isPending && <Spinner />}
               Sign out
             </Button>
