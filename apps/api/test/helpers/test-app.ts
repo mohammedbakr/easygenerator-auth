@@ -1,10 +1,9 @@
-import type { INestApplication } from '@nestjs/common';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { Test } from '@nestjs/testing';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import type { App } from 'supertest/types.js';
 
 export interface TestApp {
-  app: INestApplication<App>;
+  app: NestExpressApplication;
   close: () => Promise<void>;
 }
 
@@ -34,7 +33,7 @@ export async function createTestApp(overrides: Record<string, string> = {}): Pro
   const { configureApp } = await import('../../src/app.setup.js');
 
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-  const app = moduleRef.createNestApplication<INestApplication<App>>();
+  const app = moduleRef.createNestApplication<NestExpressApplication>();
   configureApp(app);
   await app.init();
 

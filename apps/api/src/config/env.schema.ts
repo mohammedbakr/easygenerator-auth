@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+/** z.coerce.boolean() treats the string "false" as true, so parse the two strings explicitly. */
+const boolString = z.enum(['true', 'false']).transform((value) => value === 'true');
+
 export const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -12,11 +15,17 @@ export const envSchema = z
     CORS_ORIGIN: z.url(),
     RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(100),
     AUTH_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().default(5),
+    // Behind a reverse proxy (nginx), trust its X-Forwarded-For so req.ip is the real client.
+    TRUST_PROXY: boolString.default(false),
+    // Defaults to true in production. Set false only for a plain-http run: Safari drops Secure
+    // cookies on http://localhost.
+    COOKIE_SECURE: boolString.optional(),
   })
   .refine((env) => env.JWT_ACCESS_SECRET !== env.JWT_REFRESH_SECRET, {
     message: 'JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must differ',
     path: ['JWT_REFRESH_SECRET'],
-  });
+  })
+  .transform((env) => ({ ...env, COOKIE_SECURE: env.COOKIE_SECURE ?? env.NODE_ENV === 'production' }));
 
 export type Env = z.infer<typeof envSchema>;
 

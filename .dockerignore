@@ -1,0 +1,22 @@
+# Keep the build context small and secrets out of images
+**/node_modules
+**/dist
+**/coverage
+**/*.tsbuildinfo
+.git
+.github
+
+# env files (the example is kept)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# local-only files
+notes-ai.md
+CLAUDE.local.md
+INTERVIEW-*.md
+.DS_Store
+**/.DS_Store
