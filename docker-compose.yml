@@ -3,8 +3,17 @@
 services:
   mongo:
     image: mongo:8
+    environment:
+      # Root user: admin only. The API never uses it. Applies only on an empty volume.
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?set it in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?set it in .env}
+      # Read by the init script below to create the app user.
+      MONGO_APP_USERNAME: ${MONGO_APP_USERNAME:?set it in .env}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?set it in .env}
     volumes:
       - mongo-data:/data/db
+      # Creates the least-privilege app user on first start.
+      - ./docker/mongo-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -12,8 +21,9 @@ services:
       retries: 5
       start_period: 20s
     ports:
-      # Host-only (127.0.0.1) so MongoDB Compass works locally. This DB has no authentication,
-      # so it must never be reachable from the LAN.
+      # Host-only (127.0.0.1) so MongoDB Compass works locally. It must never be reachable
+      # from the LAN.
+      # Authentication is also required (see environment above).
       - "127.0.0.1:27017:27017"
 
   api:
@@ -25,7 +35,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      MONGO_URI: mongodb://mongo:27017/easygenerator-auth
+      # The app user (readWrite on this database only), not root. Special characters in the
+      # password must be URL-encoded here.
+      MONGO_URI: mongodb://${MONGO_APP_USERNAME:?set it in .env}:${MONGO_APP_PASSWORD:?set it in .env}@mongo:27017/easygenerator-auth?authSource=easygenerator-auth
       CORS_ORIGIN: http://localhost:8080
       # Behind nginx: use X-Forwarded-For so rate limiting sees the real client IP.
       TRUST_PROXY: "true"
