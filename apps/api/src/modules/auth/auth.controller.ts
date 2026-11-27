@@ -38,7 +38,7 @@ export class AuthController {
     config: AppConfigService,
   ) {
     this.cookieConfig = {
-      secure: config.isProduction,
+      secure: config.get('COOKIE_SECURE'),
       accessTtlSeconds: config.get('JWT_ACCESS_TTL_SECONDS'),
       refreshTtlSeconds: config.get('JWT_REFRESH_TTL_SECONDS'),
     };

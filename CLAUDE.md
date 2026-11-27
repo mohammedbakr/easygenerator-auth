@@ -28,6 +28,7 @@ Take-home task: sign up / sign in. NestJS + MongoDB API in apps/api, React + Vit
 - Token lifetimes are integer **seconds** in env (`JWT_ACCESS_TTL_SECONDS=900`, `JWT_REFRESH_TTL_SECONDS=604800`). The same number feeds the JWT `expiresIn` and the cookie `maxAge`, so there is no string parsing.
 - The refresh token is stored as a **SHA-256 hex** hash and compared with `timingSafeEqual`. SHA-256 is fine because the token is long and random (nothing to brute-force); argon2 is for low-entropy passwords.
 - `PASSWORD_REGEX` is Unicode-aware: `/^(?=.*\p{L})(?=.*\p{N})(?=.*[^\p{L}\p{N}]).+$/u`. Letters and digits from any script count; "special" is anything that is neither. The web zod schema must mirror this exact regex.
+- `TRUST_PROXY` (default off) makes Express trust one proxy hop, so `req.ip` (used by the rate limiter) is the real client from nginx's `X-Forwarded-For`. `COOKIE_SECURE` (default: true in production) sets the cookie `secure` flag; compose sets it false for plain-http local runs because Safari drops Secure cookies on `http://localhost`.
 - Refresh rotation is atomic: swap the stored hash with a compare-and-set update; if it fails, treat it as token reuse.
 
 ## Architecture (API)
