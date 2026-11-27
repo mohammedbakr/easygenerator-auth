@@ -1,3 +1,7 @@
+// Messages mirror the web zod schemas, so server errors read the same as client ones.
+export const EMAIL_INVALID_MESSAGE = 'Enter a valid email address';
+export const PASSWORD_REQUIRED_MESSAGE = 'Password is required';
+
 export const EMAIL_MAX_LENGTH = 254;
 
 export const NAME_MIN_LENGTH = 3;

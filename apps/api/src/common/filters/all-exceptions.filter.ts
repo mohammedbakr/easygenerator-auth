@@ -7,10 +7,14 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import type { FieldError } from '../errors/validation-exception.factory.js';
 
 export interface ErrorResponseBody {
   statusCode: number;
-  message: string | string[];
+  /** Always one human-readable string. */
+  message: string;
+  /** Per-field details (validation, duplicate email). Absent for 401/429 and 5xx. */
+  errors?: FieldError[];
   path: string;
   timestamp: string;
 }
@@ -35,21 +39,32 @@ export class AllExceptionsFilter implements ExceptionFilter {
       );
     }
 
+    const errors = statusCode >= 500 ? undefined : this.fieldErrorsOf(exception);
     const body: ErrorResponseBody = {
       statusCode,
       message: statusCode >= 500 ? 'Internal server error' : this.messageOf(exception),
+      ...(errors && { errors }),
       path: req.originalUrl,
       timestamp: new Date().toISOString(),
     };
     res.status(statusCode).json(body);
   }
 
-  private messageOf(exception: unknown): string | string[] {
+  private messageOf(exception: unknown): string {
     if (!(exception instanceof HttpException)) return 'Internal server error';
     const response = exception.getResponse();
     if (typeof response === 'string') return response;
     const message = (response as { message?: unknown }).message;
-    if (typeof message === 'string' || Array.isArray(message)) return message as string | string[];
+    if (typeof message === 'string') return message;
+    if (Array.isArray(message)) return message.join('. ');
     return exception.message;
+  }
+
+  private fieldErrorsOf(exception: unknown): FieldError[] | undefined {
+    if (!(exception instanceof HttpException)) return undefined;
+    const response = exception.getResponse();
+    if (typeof response === 'string') return undefined;
+    const { errors } = response as { errors?: unknown };
+    return Array.isArray(errors) ? (errors as FieldError[]) : undefined;
   }
 }

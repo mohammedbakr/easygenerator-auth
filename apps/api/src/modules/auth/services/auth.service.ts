@@ -13,6 +13,8 @@ export interface AuthResult {
   tokens: AuthTokens;
 }
 
+const EMAIL_TAKEN_MESSAGE = 'Email is already registered';
+
 @Injectable()
 export class AuthService implements OnModuleInit {
   /** Verified against when the email is unknown, so "no such user" costs the same time. */
@@ -35,7 +37,10 @@ export class AuthService implements OnModuleInit {
       user = await this.users.create({ email: dto.email, name: dto.name, passwordHash });
     } catch (error) {
       if (error instanceof EmailAlreadyExistsError) {
-        throw new ConflictException('Email is already registered');
+        throw new ConflictException({
+          message: EMAIL_TAKEN_MESSAGE,
+          errors: [{ field: 'email', message: EMAIL_TAKEN_MESSAGE }],
+        });
       }
       throw error;
     }

@@ -1,4 +1,11 @@
-import { ArgumentsHost, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  BadRequestException,
+  ConflictException,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AllExceptionsFilter } from './all-exceptions.filter.js';
 
 function mockHost() {
@@ -25,12 +32,30 @@ describe('AllExceptionsFilter', () => {
     );
   });
 
-  it('keeps validation message arrays', () => {
+  it('always returns message as a single string', () => {
     const { host, json } = mockHost();
-    filter.catch(new BadRequestException(['email must be an email']), host);
+    filter.catch(new BadRequestException(['email must be an email', 'name too short']), host);
     expect(json).toHaveBeenCalledWith(
-      expect.objectContaining({ statusCode: 400, message: ['email must be an email'] }),
+      expect.objectContaining({
+        statusCode: 400,
+        message: 'email must be an email. name too short',
+      }),
     );
+  });
+
+  it('passes field errors through when present', () => {
+    const { host, json } = mockHost();
+    const errors = [{ field: 'email', message: 'Email is already registered' }];
+    filter.catch(new ConflictException({ message: 'Email is already registered', errors }), host);
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({ statusCode: 409, message: 'Email is already registered', errors }),
+    );
+  });
+
+  it('omits errors when there are none (401, 429)', () => {
+    const { host, json } = mockHost();
+    filter.catch(new UnauthorizedException('Invalid email or password'), host);
+    expect(json.mock.calls[0][0]).not.toHaveProperty('errors');
   });
 
   it('hides details of unknown errors', () => {
@@ -41,5 +66,16 @@ describe('AllExceptionsFilter', () => {
     expect(json).toHaveBeenCalledWith(
       expect.objectContaining({ statusCode: 500, message: 'Internal server error' }),
     );
+  });
+
+  it('never sends field errors on 5xx', () => {
+    const { host, json } = mockHost();
+    vi.spyOn(filter['logger'], 'error').mockImplementation(() => undefined);
+    filter.catch(
+      new InternalServerErrorException({ message: 'boom', errors: [{ field: 'x', message: 'y' }] }),
+      host,
+    );
+    expect(json.mock.calls[0][0]).not.toHaveProperty('errors');
+    expect(json.mock.calls[0][0]).toMatchObject({ message: 'Internal server error' });
   });
 });
