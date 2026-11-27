@@ -36,7 +36,7 @@ export function TextField({
           type={reveal && shown ? 'text' : type}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedIds || undefined}
-          className={reveal ? 'pr-10' : undefined}
+          className={reveal ? 'h-10 pr-12 md:h-9 md:pr-10' : 'h-10 md:h-9'}
           {...inputProps}
         />
         {reveal && (
@@ -47,6 +47,7 @@ export function TextField({
               type="button"
               variant="ghost"
               size="icon-sm"
+              className="size-10 md:size-7"
               aria-label={shown ? 'Hide password' : 'Show password'}
               aria-pressed={shown}
               onClick={() => setShown((value) => !value)}
