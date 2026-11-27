@@ -36,7 +36,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
-      - run: npm run test:e2e -w apps/api
+      - run: npm run test:e2e
       - run: npm run build
 
   # Proves both Dockerfiles build. Nothing is pushed.
