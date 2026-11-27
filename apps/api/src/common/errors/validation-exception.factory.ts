@@ -24,7 +24,6 @@ function toFieldErrors(errors: ValidationError[], parent = ''): FieldError[] {
   });
 }
 
-/** ValidationPipe `exceptionFactory`: one readable message plus the per-field details. */
 export function validationExceptionFactory(errors: ValidationError[]): BadRequestException {
   return new BadRequestException({
     statusCode: HttpStatus.BAD_REQUEST,

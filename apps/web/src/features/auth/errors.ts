@@ -2,11 +2,8 @@ import { toast } from 'sonner';
 import { ApiError } from '@/lib/http';
 
 interface ErrorTargets<TField extends string> {
-  /** The field names this form actually has. */
   fields: readonly TField[];
-  /** Put a message under one of those fields (`focus` is true for the first one). */
   setFieldError: (field: TField, message: string, focus: boolean) => void;
-  /** Put a message in the form-level alert region. */
   setFormError: (message: string) => void;
 }
 

@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 interface TextFieldProps extends Omit<ComponentProps<'input'>, 'id'> {
   label: string;
   error?: string;
-  /** Adds a show/hide toggle (for password inputs). */
   reveal?: boolean;
   /** Extra element linked via aria-describedby (e.g. the password checklist). */
   describedBy?: string;

@@ -13,7 +13,6 @@
   --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-destructive-soft: var(--destructive-soft);
-  /* brand emerald */
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
   /* warning amber: icons and backgrounds only, never body text (contrast ~3:1) */
