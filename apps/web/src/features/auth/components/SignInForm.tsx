@@ -32,7 +32,9 @@ export function SignInForm() {
       onSuccess: () => navigate(getRedirectTarget(location.state), { replace: true }),
       onError: (error) =>
         applyApiError(error, {
-          setEmailError: (message) => setError('email', { message }, { shouldFocus: true }),
+          fields: ['email', 'password'],
+          setFieldError: (field, message, focus) =>
+            setError(field, { message }, { shouldFocus: focus }),
           setFormError,
         }),
     });

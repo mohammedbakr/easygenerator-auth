@@ -7,32 +7,42 @@ declare module 'axios' {
   }
 }
 
+export interface FieldError {
+  field: string;
+  message: string;
+}
+
 /** Error shape returned by the API's global exception filter. */
 interface ApiErrorBody {
   statusCode: number;
-  message: string | string[];
+  message?: string;
+  errors?: FieldError[];
 }
 
 /** The only error type the rest of the app sees. */
 export class ApiError extends Error {
   readonly status: number;
-  readonly messages: string[];
+  /** Per-field problems from the API (empty when there are none). */
+  readonly fieldErrors: FieldError[];
 
-  constructor(status: number, messages: string[]) {
-    super(messages[0] ?? 'Something went wrong');
+  constructor(status: number, message: string, fieldErrors: FieldError[] = []) {
+    super(message);
     this.name = 'ApiError';
     this.status = status;
-    this.messages = messages;
+    this.fieldErrors = fieldErrors;
   }
 }
 
 function toApiError(error: unknown): ApiError {
   if (isAxiosError<ApiErrorBody>(error) && error.response) {
-    const { message } = error.response.data ?? {};
-    const messages = Array.isArray(message) ? message : message ? [message] : [];
-    return new ApiError(error.response.status, messages);
+    const { message, errors } = error.response.data ?? {};
+    return new ApiError(
+      error.response.status,
+      typeof message === 'string' && message ? message : 'Something went wrong',
+      Array.isArray(errors) ? errors : [],
+    );
   }
-  return new ApiError(0, ['Network error, please try again']);
+  return new ApiError(0, 'Network error, please try again');
 }
 
 /** Same-origin `/api` (Vite proxy in dev, nginx in Docker); cookies carry the session. */
