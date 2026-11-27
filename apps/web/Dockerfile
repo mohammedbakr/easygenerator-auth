@@ -12,7 +12,7 @@ COPY apps/web/package.json apps/web/
 RUN npm ci -w apps/web
 COPY apps/web apps/web
 # VITE_* values are baked into the JS bundle at build time; nginx can't change them later.
-ARG VITE_APP_NAME
+ARG VITE_APP_NAME="Secure Auth"
 ENV VITE_APP_NAME=${VITE_APP_NAME}
 RUN npm run build -w apps/web
 

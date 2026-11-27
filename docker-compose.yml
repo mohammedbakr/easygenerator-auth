@@ -1,0 +1,71 @@
+# Run everything: cp .env.example .env && docker compose up --build
+# Then open http://localhost:8080
+services:
+  mongo:
+    image: mongo:8
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    ports:
+      # Host-only (127.0.0.1) so MongoDB Compass works locally. This DB has no authentication,
+      # so it must never be reachable from the LAN.
+      - "127.0.0.1:27017:27017"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    # Tiny init process as PID 1: forwards signals and reaps zombie processes.
+    init: true
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MONGO_URI: mongodb://mongo:27017/easygenerator-auth
+      CORS_ORIGIN: http://localhost:8080
+      # Behind nginx: use X-Forwarded-For so rate limiting sees the real client IP.
+      TRUST_PROXY: "true"
+      # Local plain-http run (Safari drops Secure cookies on http://localhost).
+      # Set to true when serving over HTTPS.
+      COOKIE_SECURE: "false"
+      JWT_ACCESS_TTL_SECONDS: 900
+      JWT_REFRESH_TTL_SECONDS: 604800
+      RATE_LIMIT_PER_MINUTE: 100
+      AUTH_RATE_LIMIT_PER_MINUTE: 5
+      # Required: compose refuses to start without them (see .env.example).
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set it in .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set it in .env}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      # Node's built-in fetch: slim images have no curl.
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    # Not published: only the web container (nginx) can reach it.
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_APP_NAME: ${VITE_APP_NAME:-Secure Auth}
+    ports:
+      - "8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  mongo-data:
