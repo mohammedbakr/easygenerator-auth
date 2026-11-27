@@ -40,17 +40,20 @@ export function TextField({
           {...inputProps}
         />
         {reveal && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="absolute top-1/2 right-1 -translate-y-1/2"
-            aria-label={shown ? 'Hide password' : 'Show password'}
-            aria-pressed={shown}
-            onClick={() => setShown((value) => !value)}
-          >
-            {shown ? <EyeOffIcon aria-hidden="true" /> : <EyeIcon aria-hidden="true" />}
-          </Button>
+          // Centred with flex, not translate: the Button's pressed state uses translate-y and would
+          // overwrite a translate-based centring, making the icon jump while clicked.
+          <div className="absolute inset-y-0 right-1 flex items-center">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={shown ? 'Hide password' : 'Show password'}
+              aria-pressed={shown}
+              onClick={() => setShown((value) => !value)}
+            >
+              {shown ? <EyeOffIcon aria-hidden="true" /> : <EyeIcon aria-hidden="true" />}
+            </Button>
+          </div>
         )}
       </div>
       {error && <FieldError id={errorId}>{error}</FieldError>}
