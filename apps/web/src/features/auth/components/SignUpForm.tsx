@@ -37,7 +37,9 @@ export function SignUpForm() {
       onSuccess: () => navigate(getRedirectTarget(location.state), { replace: true }),
       onError: (error) =>
         applyApiError(error, {
-          setEmailError: (message) => setError('email', { message }, { shouldFocus: true }),
+          fields: ['email', 'name', 'password'],
+          setFieldError: (field, message, focus) =>
+            setError(field, { message }, { shouldFocus: focus }),
           setFormError,
         }),
     });
