@@ -81,6 +81,9 @@ describe('AuthService', () => {
 
       await expect(attempt).rejects.toBeInstanceOf(ConflictException);
       await expect(attempt).rejects.toThrow('Email is already registered');
+      await expect(attempt).rejects.toMatchObject({
+        response: { errors: [{ field: 'email', message: 'Email is already registered' }] },
+      });
     });
 
     it('rethrows unexpected errors untouched', async () => {

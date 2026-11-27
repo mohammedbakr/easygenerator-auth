@@ -107,19 +107,30 @@ describe('auth (e2e)', () => {
 
     const dup = await request(server()).post('/api/auth/signup').send(signUp(email)).expect(409);
     expect(dup.body.message).toBe('Email is already registered');
+    expect(dup.body.errors).toEqual([{ field: 'email', message: 'Email is already registered' }]);
   });
 
   it.each([
-    ['weak password', { password: 'password' }],
-    ['short name', { name: 'Jo' }],
-    ['invalid email', { email: 'not-an-email' }],
-    ['extra field (role)', { role: 'admin' }],
-  ])('rejects signup with %s (400)', async (_label, override) => {
-    await request(server())
-      .post('/api/auth/signup')
-      .send({ ...signUp(), ...override })
-      .expect(400);
-  });
+    [
+      'weak password',
+      { password: 'password' },
+      'password',
+      'Password must contain at least one letter, one number and one special character',
+    ],
+    ['short name', { name: 'Jo' }, 'name', 'Name must be at least 3 characters'],
+    ['invalid email', { email: 'not-an-email' }, 'email', 'Enter a valid email address'],
+    ['extra field (role)', { role: 'admin' }, 'role', 'role is not allowed'],
+  ])(
+    'rejects signup with %s (400, field-level error)',
+    async (_label, override, field, message) => {
+      const res = await request(server())
+        .post('/api/auth/signup')
+        .send({ ...signUp(), ...override })
+        .expect(400);
+      expect(res.body.message).toBe('Validation failed');
+      expect(res.body.errors).toEqual([{ field, message }]);
+    },
+  );
 
   it('returns the same 401 for a wrong password and an unknown email', async () => {
     const body = signUp();
@@ -136,6 +147,8 @@ describe('auth (e2e)', () => {
 
     expect(wrong.body.message).toBe('Invalid email or password');
     expect(unknown.body.message).toBe(wrong.body.message);
+    expect(wrong.body).not.toHaveProperty('errors');
+    expect(unknown.body).not.toHaveProperty('errors');
   });
 
   it('protects /users/me, logout and rejects refresh without cookies (401)', async () => {

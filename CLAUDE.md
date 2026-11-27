@@ -77,6 +77,8 @@ Deliberately not used: hexagonal/clean architecture, CQRS, DDD aggregates. For 5
 
 All routes are under `/api`. Tokens only ever travel in httpOnly cookies, never in response bodies.
 
+Every error has one shape: `{ statusCode, message, errors?, path, timestamp }`. `message` is always one string; `errors` is an optional `{ field, message }[]` (400 validation, 409 duplicate email). 401/429 carry no `errors`, and 5xx only says "Internal server error".
+
 | Method | Path            | Auth                                       | Body                        | Success                             | Errors                               |
 | ------ | --------------- | ------------------------------------------ | --------------------------- | ----------------------------------- | ------------------------------------ |
 | POST   | `/auth/signup`  | Public, 5/min                              | `{ email, name, password }` | 201 `{ id, email, name }` + cookies | 400 validation, 409 email taken, 429 |
