@@ -9,6 +9,8 @@ export const authKeys = { me: ['auth', 'me'] } as const;
 export function useMe() {
   return useQuery<AuthUser | null>({
     queryKey: authKeys.me,
+    // The session only changes via our own mutations or a failed refresh, so never refetch in the background.
+    staleTime: Infinity,
     queryFn: async () => {
       try {
         return await api.getMe();
